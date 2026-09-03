@@ -1,0 +1,14 @@
+node_modules
+.vercel
+.output
+.nitro
+dist
+.tanstack
+*.log
+.env
+.env.*
+.DS_Store
+coverage
+screenshots
+.grok/
+artifacts/imagine_images

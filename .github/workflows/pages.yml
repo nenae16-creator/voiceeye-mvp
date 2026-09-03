@@ -1,0 +1,60 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Production build with Pages base
+        run: npm run build
+        env:
+          VITE_BASE: /voiceeye-mvp/
+      - name: Serve built app and snapshot HTML
+        run: |
+          set -e
+          node scripts/preview.mjs restart
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null http://127.0.0.1:8081/; then break; fi
+            sleep 1
+          done
+          mkdir -p site/plan site/bench
+          cp -a .vercel/output/static/. site/
+          curl -sf http://127.0.0.1:8081/ > site/index.html
+          curl -sf http://127.0.0.1:8081/plan > site/plan/index.html
+          curl -sf http://127.0.0.1:8081/bench > site/bench/index.html
+          cp site/index.html site/404.html
+          test -s site/index.html
+          grep -q "보이스아이" site/index.html
+          node scripts/preview.mjs stop
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.out.outputs.page_url }}
+    steps:
+      - id: out
+        uses: actions/deploy-pages@v4
