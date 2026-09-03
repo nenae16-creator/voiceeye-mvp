@@ -9,13 +9,13 @@
 
 ## 팀원용 바로 열기
 
-**사이트:** https://nenae16-creator.github.io/voiceeye-mvp/
+**사이트:** https://nenae16-creator.github.io/voiceeye/
 
 | 페이지 | 주소 |
 |---|---|
-| 회의 HUD | https://nenae16-creator.github.io/voiceeye-mvp/ |
-| 사업계획 v2 | https://nenae16-creator.github.io/voiceeye-mvp/plan |
-| 인식률 벤치 | https://nenae16-creator.github.io/voiceeye-mvp/bench |
+| 회의 HUD | https://nenae16-creator.github.io/voiceeye/ |
+| 사업계획 v2 | https://nenae16-creator.github.io/voiceeye/plan |
+| 인식률 벤치 | https://nenae16-creator.github.io/voiceeye/bench |
 
 HUD에서 해볼 것: 재생 → 겹침 구간 → 얼굴 클릭(시선 고정) → 이름 붙이기 → 프리셋 미리보기.
 

@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm install
       - name: Production build with Pages base
         run: npm run build
         env:
@@ -33,14 +33,15 @@ jobs:
           set -e
           node scripts/preview.mjs restart
           for i in $(seq 1 30); do
-            if curl -sf -o /dev/null http://127.0.0.1:8081/; then break; fi
+            if curl -sf -o /dev/null http://127.0.0.1:8081/voiceeye-mvp/; then break; fi
             sleep 1
           done
-          mkdir -p site/plan site/bench
+          mkdir -p site
           cp -a .vercel/output/static/. site/
-          curl -sf http://127.0.0.1:8081/ > site/index.html
-          curl -sf http://127.0.0.1:8081/plan > site/plan/index.html
-          curl -sf http://127.0.0.1:8081/bench > site/bench/index.html
+          mkdir -p site/plan site/bench
+          curl -sf http://127.0.0.1:8081/voiceeye-mvp/ > site/index.html
+          curl -sf http://127.0.0.1:8081/voiceeye-mvp/plan > site/plan/index.html
+          curl -sf http://127.0.0.1:8081/voiceeye-mvp/bench > site/bench/index.html
           cp site/index.html site/404.html
           test -s site/index.html
           grep -q "보이스아이" site/index.html
