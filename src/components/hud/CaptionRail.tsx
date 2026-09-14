@@ -6,7 +6,7 @@ type UserCap = { id: string; text: string; confirmed: boolean };
 export function CaptionRail({
   clock,
   history,
-  gaze,
+  focusSpeaker,
   userCaps,
   labeled,
   partialOf,
@@ -14,7 +14,7 @@ export function CaptionRail({
 }: {
   clock: number;
   history: Turn[];
-  gaze: SpeakerId | null;
+  focusSpeaker: SpeakerId | null;
   userCaps: UserCap[];
   labeled: boolean;
   partialOf: (turn: Turn, clock: number) => string;
@@ -41,41 +41,30 @@ export function CaptionRail({
     })),
   ].slice(-6);
 
-  const visible = gaze
-    ? [
-        ...rows.filter((r) => r.speakerId === gaze),
-        ...rows.filter((r) => r.speakerId !== gaze),
-      ].slice(0, 6)
-    : rows;
+  const visible = rows;
 
   return (
-    <section
-      aria-live="polite"
-      aria-relevant="additions text"
-      className="rounded-lg border border-border bg-surface p-3 sm:p-4"
-    >
+    <section className="rounded-lg border border-border bg-surface p-3 sm:p-4">
       <div className="mb-2 flex items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold">자막</h2>
+        <h2 className="text-sm font-semibold">노트북 회의 기록</h2>
         <p className="text-xs text-subtle">
           {labeled ? "주최자 라벨" : "익명 클러스터"} · 부분 후 확정
         </p>
       </div>
       {visible.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted">
-          회의가 시작되면 여기에 붙습니다.
-        </p>
+        <p className="py-6 text-center text-sm text-muted">회의가 시작되면 여기에 붙습니다.</p>
       ) : (
         <ul className="space-y-2">
           {visible.map((row) => {
-            const focused = gaze === row.speakerId;
-            const dim = gaze !== null && !focused;
+            const focused = focusSpeaker === row.speakerId;
+            const dim = focusSpeaker !== null && !focused;
             return (
               <li
                 key={row.key}
                 data-spk={row.speakerId}
                 className={cn(
                   "flex gap-2.5 rounded-md bg-elevated px-3 py-2.5 transition-opacity duration-150",
-                  dim && "opacity-45",
+                  dim && "opacity-60",
                   focused && "ring-1 ring-accent/50",
                   row.low && "caption-low",
                 )}
@@ -86,17 +75,11 @@ export function CaptionRail({
                     <span className="text-xs font-medium text-fg">
                       {displayOf(row.speakerId, labeled)}
                     </span>
-                    <span className="text-xs text-subtle">
-                      {roleOf(row.speakerId, labeled)}
-                    </span>
+                    <span className="text-xs text-subtle">{roleOf(row.speakerId, labeled)}</span>
                     {row.live && !row.confirmed ? (
-                      <span className="text-xs uppercase tracking-wide text-muted">
-                        부분
-                      </span>
+                      <span className="text-xs uppercase tracking-wide text-muted">부분</span>
                     ) : (
-                      <span className="text-xs uppercase tracking-wide text-pass">
-                        확정
-                      </span>
+                      <span className="text-xs uppercase tracking-wide text-pass">확정</span>
                     )}
                     {row.overlap ? (
                       <span className="text-xs font-medium text-warn">겹침</span>

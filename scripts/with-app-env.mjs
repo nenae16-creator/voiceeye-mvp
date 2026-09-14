@@ -24,6 +24,7 @@ import { readFileSync, realpathSync } from "node:fs";
 import { constants as osConstants } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 export const APP_ENV_REL_PATH = ".grok/app-env.json";
 
@@ -56,7 +57,11 @@ export function readAppEnv(root) {
   try {
     return parseAppEnv(readFileSync(join(root, APP_ENV_REL_PATH), "utf8"));
   } catch {
-    return {};
+    try {
+      return parseAppEnv(readFileSync(join(root, "app-env.json"), "utf8"));
+    } catch {
+      return {};
+    }
   }
 }
 
@@ -110,8 +115,21 @@ function main(argv) {
     console.error("usage: node scripts/with-app-env.mjs <command> [args…]");
     process.exit(2);
   }
+  // VoiceEye has no accounts. Keep the default portable when .grok is absent.
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
-  const child = spawn(command, args, { stdio: "inherit", env });
+  // Windows cannot spawn npm's vite.cmd shim without a shell. Run its JS entry.
+  const require = createRequire(import.meta.url);
+  const viteEntry =
+    command === "vite" ? join(dirname(require.resolve("vite/package.json")), "bin/vite.js") : null;
+  const child = spawn(
+    viteEntry ? process.execPath : command,
+    viteEntry ? [viteEntry, ...args] : args,
+    {
+      stdio: "inherit",
+      env,
+      windowsHide: true,
+    },
+  );
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => child.kill(signal));

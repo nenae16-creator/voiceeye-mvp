@@ -11,8 +11,11 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#0b0c0e" },
-      { name: "description", content: "청각장애인을 위한 다중 회의 발언자 표시와 실시간 자막." },
+      { name: "theme-color", content: "#071013" },
+      {
+        name: "description",
+        content: "노트북 위 투명 패널로 자막과 발언자 위치를 함께 보여 주는 회의 접근성 도구.",
+      },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

@@ -3,15 +3,18 @@ import { cn } from "@/lib/cn";
 
 export function MiniMap({
   speakingIds,
-  gaze,
+  focusSpeaker,
 }: {
   speakingIds: Set<SpeakerId>;
-  gaze: SpeakerId | null;
+  focusSpeaker: SpeakerId | null;
 }) {
   return (
-    <div className="pointer-events-none absolute top-3 right-3 rounded-md bg-bg/80 p-2 sm:top-4 sm:right-4">
+    <div
+      aria-hidden="true"
+      className="mini-map pointer-events-none absolute top-3 right-3 rounded-md bg-bg/80 p-2 sm:top-4 sm:right-4"
+    >
       <p className="mb-1 text-center text-xs text-subtle">좌석</p>
-      <div className="relative h-20 w-24">
+      <div className="mini-map-field relative">
         {others.map((s) => (
           <span
             key={s.id}
@@ -19,7 +22,7 @@ export function MiniMap({
             className={cn(
               "absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-elevated ring-1 ring-border",
               speakingIds.has(s.id) && "spk-dot ring-0",
-              gaze === s.id && "outline outline-offset-1 outline-accent",
+              focusSpeaker === s.id && "outline outline-offset-1 outline-accent",
             )}
             style={{ left: `${s.head.x}%`, top: `${s.head.y}%` }}
             title={s.anon}

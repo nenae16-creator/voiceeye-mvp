@@ -21,13 +21,25 @@ function Bench() {
         <p className="text-xs font-medium tracking-wide text-muted">
           보이스아이 · 실측 벤치 · {bench.measured_at.slice(0, 16).replace("T", " ")} KST
         </p>
+
+        <p className="mt-3 text-sm text-warn">
+          기존 합성음 왕복 실측 자료입니다. 현장 테이블 마이크 인식률·실시간 스트리밍 지연·DER는
+          미측정입니다.
+        </p>
+        <a
+          href={`${import.meta.env.BASE_URL}bench/asr-results.json`}
+          download
+          className="mt-3 inline-flex min-h-11 items-center rounded-md bg-elevated px-3 text-sm"
+        >
+          실측 JSON 원본 받기
+        </a>
         <h1 className="mt-2 max-w-xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           한국어 회의체 인식률, 실제로 돌린 값
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
-          xAI grok-tts(ko)로 회의체 6문장을 합성하고 grok-stt에 다시 넣었다. 같은
-          벤더 왕복은 천장이다. 원거리는 잔향+핑크노이즈, 겹침은 0.9초 믹스.
-          주지표는 CER와 숫자 정규화(ITN) CER이다. 어절 WER는 띄어쓰기에 과민하다.
+          xAI grok-tts(ko)로 회의체 6문장을 합성하고 grok-stt에 다시 넣었다. 같은 벤더 왕복은
+          천장이다. 원거리는 잔향+핑크노이즈, 겹침은 0.9초 믹스. 주지표는 CER와 숫자 정규화(ITN)
+          CER이다. 어절 WER는 띄어쓰기에 과민하다.
         </p>
 
         <section className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -58,9 +70,9 @@ function Bench() {
         </section>
 
         <section className="mt-8 rounded-lg border border-border bg-surface p-5 sm:p-6">
-          <h2 className="text-sm font-semibold">2026 게이트 판정</h2>
+          <h2 className="text-sm font-semibold">원본 벤치의 당시 기준 판정</h2>
           <p className="mt-1 text-sm text-muted">
-            사업계획서: 회의체 WER ≤ 18%, CER ≤ 8%. 2028년은 WER 8% · CER 3.5%.
+            JSON에 기록된 2026·2028 기준입니다. 사업계획 v2의 2028–2030 성능 목표와 구분합니다.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <GateRow
@@ -110,16 +122,15 @@ function Bench() {
 
         <section className="mt-8 space-y-2 rounded-lg border border-border bg-surface p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <CircleAlert className="size-4 text-warn" aria-hidden />
-            이 숫자가 의미하는 것
+            <CircleAlert className="size-4 text-warn" aria-hidden />이 숫자가 의미하는 것
           </h2>
           <ul className="space-y-2 text-sm leading-relaxed text-muted">
             {bench.notes.map((n) => (
               <li key={n}>{n}</li>
             ))}
             <li>
-              현장 글래스 마이크·다화자·방언은 이 벤치보다 나쁘다. 겹침 분리 없이
-              가면 2026 게이트는 바로 실패한다.
+              현장 테이블 마이크·다화자·방언 성능은 이 자료만으로 알 수 없습니다. 겹침 구간은 이
+              벤치의 당시 CER 기준을 통과하지 못했습니다.
             </li>
           </ul>
         </section>
@@ -147,7 +158,7 @@ function Stat({
     <article className="rounded-lg border border-border bg-surface p-4">
       <p className="text-xs font-medium text-muted">{title}</p>
       <p className="mt-2 font-mono text-3xl tabular-nums tracking-tight">{pct(cer)}</p>
-      <p className="mt-1 text-xs text-subtle">원문 CER · 마이크로</p>
+      <p className="mt-1 text-xs text-subtle">원문 CER · 마이크로 평균</p>
       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <div>
           <dt className="text-subtle">ITN-CER</dt>
@@ -166,15 +177,7 @@ function Stat({
   );
 }
 
-function GateRow({
-  label,
-  pass,
-  value,
-}: {
-  label: string;
-  pass: boolean;
-  value: string;
-}) {
+function GateRow({ label, pass, value }: { label: string; pass: boolean; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-md bg-elevated px-3 py-2.5">
       <span className="flex items-center gap-2 text-sm">

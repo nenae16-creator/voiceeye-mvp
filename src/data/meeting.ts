@@ -30,7 +30,7 @@ export const speakers: Speaker[] = [
     role: "복지부 과장",
     initial: "1",
     angle: 0,
-    head: { x: 51.2, y: 34.8, w: 7.4, h: 16.8 },
+    head: { x: 54.2, y: 42.7, w: 6.4, h: 14.0 },
   },
   {
     id: "park",
@@ -39,7 +39,7 @@ export const speakers: Speaker[] = [
     role: "연구관",
     initial: "2",
     angle: -34,
-    head: { x: 33.2, y: 39.5, w: 6.6, h: 14.8 },
+    head: { x: 32.8, y: 42.0, w: 6.6, h: 14.8 },
   },
   {
     id: "lee",
@@ -48,7 +48,7 @@ export const speakers: Speaker[] = [
     role: "주무관",
     initial: "3",
     angle: 30,
-    head: { x: 67.9, y: 36.4, w: 6.6, h: 14.8 },
+    head: { x: 76.3, y: 44.5, w: 7.1, h: 16.1 },
   },
   {
     id: "choi",
@@ -57,7 +57,7 @@ export const speakers: Speaker[] = [
     role: "보조공학사",
     initial: "4",
     angle: -56,
-    head: { x: 18.8, y: 40.8, w: 9.6, h: 21.0 },
+    head: { x: 13.0, y: 43.0, w: 12.0, h: 21.0 },
   },
   {
     id: "jung",
@@ -66,22 +66,23 @@ export const speakers: Speaker[] = [
     role: "통역지원",
     initial: "5",
     angle: 54,
-    head: { x: 89.8, y: 39.5, w: 9.2, h: 19.5 },
+    head: { x: 90.5, y: 47.5, w: 11.4, h: 22.0 },
   },
   {
     id: "self",
     anon: "나",
     name: "나",
-    role: "착용자",
+    role: "패널 사용자",
     initial: "나",
     angle: 180,
     head: { x: 50, y: 94, w: 8, h: 8 },
   },
 ];
 
-export const speakerMap = Object.fromEntries(
-  speakers.map((s) => [s.id, s]),
-) as Record<SpeakerId, Speaker>;
+export const speakerMap = Object.fromEntries(speakers.map((s) => [s.id, s])) as Record<
+  SpeakerId,
+  Speaker
+>;
 
 export const others = speakers.filter((s) => s.id !== "self");
 
@@ -121,7 +122,7 @@ export const turns: Turn[] = [
     speakerId: "lee",
     startMs: 21400,
     endMs: 27800,
-    text: "공공회의 녹음은 온디바이스 1패스로 가야 합니다. 국외이전은 설계에서 뺍니다.",
+    text: "공공회의 음성은 노트북 안에서 우선 처리해야 합니다. 국외이전은 설계에서 뺍니다.",
     overlap: true,
     lowConfidence: true,
   },
@@ -130,7 +131,7 @@ export const turns: Turn[] = [
     speakerId: "jung",
     startMs: 21800,
     endMs: 27600,
-    text: "자막만으로는 부족합니다. 누가 말하는지 시야 안 좌석으로 떠야 합니다.",
+    text: "자막만으로는 부족합니다. 누가 말하는지 패널 안 좌석 방향으로 보여야 합니다.",
     overlap: true,
     lowConfidence: true,
   },
@@ -139,14 +140,14 @@ export const turns: Turn[] = [
     speakerId: "kim",
     startMs: 28600,
     endMs: 34800,
-    text: "시선 고정하면 그 클러스터 자막을 우선합니다. 착용자분, 미리보기 후 발언해 주십시오.",
+    text: "좌석을 선택하면 그 화자 자막을 우선합니다. 사용자분, 미리보기 후 발언해 주십시오.",
   },
   {
     id: "t6",
     speakerId: "jung",
     startMs: 35200,
     endMs: 39800,
-    text: "렌즈에 먼저 뜨고, 확인한 뒤에만 스피커로 나갑니다. 기본은 비저장입니다.",
+    text: "초안은 노트북에만 보이고, 확인한 뒤에만 패널과 스피커로 나갑니다. 기본은 비저장입니다.",
   },
 ];
 
