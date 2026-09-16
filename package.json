@@ -15,10 +15,12 @@
     "preview:restart": "node scripts/preview.mjs restart",
     "preview:stop": "node scripts/preview.mjs stop",
     "typecheck": "tsc --noEmit",
+    "build:demo": "node scripts/build-portable-demo.mjs",
+    "demo:serve": "node scripts/serve-demo.mjs",
     "docs:sync": "node --experimental-strip-types scripts/sync-plan-docs.mjs",
     "check:plan": "node --experimental-strip-types scripts/sync-plan-docs.mjs --check",
     "check:auth": "node scripts/check-auth-invariant.mjs",
-    "test:mvp": "node --test scripts/live-transcriber.test.mjs scripts/speech-composer.test.mjs scripts/presentation-scenario.test.mjs",
+    "test:mvp": "node --test scripts/live-transcriber.test.mjs scripts/speech-composer.test.mjs scripts/presentation-scenario.test.mjs scripts/meeting-demo.test.mjs scripts/meeting-chat.test.mjs",
     "test": "npm run test:mvp && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts",
     "lint": "eslint .",
     "format": "prettier --write ."

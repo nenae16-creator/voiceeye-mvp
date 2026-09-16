@@ -55,11 +55,13 @@ export type LiveCaption = {
 };
 
 export function LiveTranscriber({
+  compact = false,
   disabled,
   onPartial,
   onFinal,
   onListeningChange,
 }: {
+  compact?: boolean;
   disabled: boolean;
   onPartial: (text: string) => void;
   onFinal: (caption: LiveCaption) => void;
@@ -220,6 +222,23 @@ export function LiveTranscriber({
     : listening
       ? "말씀하세요. 자막을 만드는 중입니다."
       : "마이크를 켜면 바로 자막을 만듭니다.";
+
+  if (compact)
+    return disabled ? null : (
+      <section className="meeting-mic-controls" aria-label="마이크 자막 제어">
+        <button type="button" onClick={listening ? stop : start} disabled={supported === false}>
+          {listening ? <MicOff aria-hidden /> : <Mic aria-hidden />}
+          {listening ? "마이크 끄기" : "마이크 켜기"}
+        </button>
+        <p role="status">{status}</p>
+        <small>음성 처리 위치는 브라우저 정책을 따릅니다.</small>
+        {error && (
+          <p className="meeting-mic-error" role="alert">
+            {error}
+          </p>
+        )}
+      </section>
+    );
 
   return (
     <section className="live-console" aria-labelledby="live-caption-title">

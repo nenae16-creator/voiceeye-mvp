@@ -26,11 +26,11 @@ export const presentationScenario: ScenarioStep[] = [
       {
         speaker: "김서연 · 진행",
         seat: "center",
-        text: "오늘은 장애인 고용 상담에 사용할 보이스아이 시연을 진행하겠습니다.",
+        text: "오늘은 다음 주 상담 일정과 안내 방식을 정하겠습니다.",
       },
     ],
     note: "참석자에게 자막과 음성 처리 방식을 먼저 알립니다.",
-    voiceText: "오늘은 장애인 고용 상담에 사용할 보이스아이 시연을 진행하겠습니다.",
+    voiceText: "오늘은 다음 주 상담 일정과 안내 방식을 정하겠습니다.",
   },
   {
     startMs: 9000,
@@ -87,12 +87,12 @@ export const presentationScenario: ScenarioStep[] = [
       {
         speaker: "김서연 · 진행",
         seat: "center",
-        text: "이종현 님 의견도 듣겠습니다.",
+        text: "다른 의견도 함께 듣겠습니다.",
       },
     ],
     note: "입력 중인 문장은 다른 참석자에게 보이지 않습니다.",
     draft: "잠시만 기다려 주세요. 제 의견을 입력하고 있습니다.",
-    voiceText: "이종현 님 의견도 듣겠습니다.",
+    voiceText: "다른 의견도 함께 듣겠습니다.",
   },
   {
     startMs: 49000,
@@ -119,7 +119,7 @@ export const presentationScenario: ScenarioStep[] = [
         text: "저는 화요일 오전이 좋습니다. 안내문은 쉬운 문장으로 보내 주세요.",
       },
     ],
-    note: "기기에 한국어 음성이 없으면 자막 시연은 그대로 진행됩니다.",
+    note: "이 발언은 시연용 합성 음성 파일입니다. 직접 작성한 문장의 재생은 별도 입력창에서 확인합니다.",
     voiceText: "저는 화요일 오전이 좋습니다. 안내문은 쉬운 문장으로 보내 주세요.",
   },
   {
@@ -133,7 +133,7 @@ export const presentationScenario: ScenarioStep[] = [
         text: "화요일 오전으로 정하고, 안내문은 오늘 안에 보내겠습니다.",
       },
     ],
-    note: "시연 종료 · 실제 회의 저장 기능은 본선 개발 범위입니다.",
+    note: "확정된 발언은 회의 기록에서 다시 확인하고 텍스트로 저장합니다.",
     voiceText: "화요일 오전으로 정하고, 안내문은 오늘 안에 보내겠습니다.",
   },
 ];

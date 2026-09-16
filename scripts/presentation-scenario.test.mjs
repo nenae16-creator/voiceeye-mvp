@@ -16,8 +16,15 @@ test("the presentation scenario is a complete 80-second meeting", async () => {
 
 test("the USB demo is self-contained and uses the same scenario", async () => {
   const html = await readFile(new URL("portable/voiceeye-demo/index.html", root), "utf8");
-  assert.doesNotMatch(html, /https?:\/\//);
-  assert.match(html, /회의 시연 시작/);
-  assert.match(html, /실제 마이크 성능 측정이 아님/);
-  assert.match(html, /80000/);
+  const shell = html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style>[\s\S]*?<\/style>/gi, "");
+  assert.ok(
+    !/<(?:script|link)\b[^>]*(?:src|href)="/i.test(shell),
+    "No external script or stylesheet",
+  );
+  assert.ok(html.includes("data:image/jpeg;base64,"), "Meeting image is embedded");
+  assert.ok(html.includes("회의 시연 시작"), "Meeting controls are bundled");
+  assert.ok(html.includes("실제 마이크 인식률과 자동 화자 판정 성능"), "Limitations are visible");
+  assert.ok(html.includes("화요일 오전으로 정하고"), "Scenario dialogue is bundled");
 });

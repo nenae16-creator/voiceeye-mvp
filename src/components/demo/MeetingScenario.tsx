@@ -1,25 +1,55 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Download, Mic, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import roomImage from "../../assets/meeting-people.jpg";
+import { PRESENTATION_DURATION_MS } from "../../data/presentation-scenario";
 import {
-  PRESENTATION_DURATION_MS,
-  presentationDisclosure,
-  presentationScenario,
-  scenarioStepAt,
-  type ScenarioLine,
-} from "@/data/presentation-scenario";
+  appendRecords,
+  completedDemoRecords,
+  demoFrame,
+  meetingSeats,
+  meetingTime,
+  recordText,
+  type MeetingRecord,
+} from "../../lib/meeting-demo";
+import { LiveTranscriber, type LiveCaption } from "../hud/LiveTranscriber";
+import { MeetingChat } from "./MeetingChat";
 
-const TICK_MS = 80;
+type PanelCaption = {
+  speaker: string;
+  text: string;
+  final: boolean;
+  source: "microphone" | "keyboard";
+};
 
-export function MeetingScenario() {
+export function MeetingScenario({ portable = false }: { portable?: boolean }) {
+  const [mode, setMode] = useState<"demo" | "live">("demo");
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const [started, setStarted] = useState(false);
+  const [session, setSession] = useState(0);
   const [muted, setMuted] = useState(false);
+  const [audioWarning, setAudioWarning] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+  const [panelOverride, setPanelOverride] = useState<PanelCaption | null>(null);
+  const [records, setRecords] = useState<MeetingRecord[]>([]);
   const lastTickRef = useRef(0);
-  const spokenStepRef = useRef(-1);
-  const { index, step } = useMemo(() => scenarioStepAt(elapsed), [elapsed]);
-  const progress = Math.min(100, (elapsed / PRESENTATION_DURATION_MS) * 100);
+  const runningRef = useRef(false);
+  const selectedSeatRef = useRef<string | null>(null);
+  const sampleAudioRef = useRef(new Set<HTMLAudioElement>());
+  const recordListRef = useRef<HTMLDivElement>(null);
+  const frame = useMemo(() => demoFrame(elapsed, started), [elapsed, started]);
+  selectedSeatRef.current = selectedSeat;
+  runningRef.current = running;
+
+  const pause = useCallback(() => {
+    runningRef.current = false;
+    sampleAudioRef.current.forEach((audio) => audio.pause());
+    sampleAudioRef.current.clear();
+    window.speechSynthesis?.cancel();
+    setRunning(false);
+  }, []);
 
   useEffect(() => {
     if (!running) return;
@@ -28,184 +58,430 @@ export function MeetingScenario() {
       const now = performance.now();
       const delta = now - lastTickRef.current;
       lastTickRef.current = now;
-      setElapsed((current) => {
-        const next = Math.min(PRESENTATION_DURATION_MS, current + delta);
-        if (next >= PRESENTATION_DURATION_MS) queueMicrotask(() => setRunning(false));
-        return next;
-      });
-    }, TICK_MS);
+      setElapsed((value) => Math.min(PRESENTATION_DURATION_MS, value + delta));
+    }, 80);
     return () => window.clearInterval(timer);
   }, [running]);
 
   useEffect(() => {
-    if (!running || muted || spokenStepRef.current === index || !step.voiceText) return;
-    spokenStepRef.current = index;
-    const synth = window.speechSynthesis;
-    if (!synth || typeof SpeechSynthesisUtterance === "undefined") return;
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(step.voiceText);
-    const voices = synth.getVoices();
-    utterance.voice = voices.find((voice) => voice.lang.toLowerCase().startsWith("ko")) ?? null;
-    utterance.lang = "ko-KR";
-    utterance.rate = index === 6 ? 0.94 : 1.04;
-    utterance.pitch = index % 2 === 0 ? 1 : 0.92;
-    synth.speak(utterance);
-    return () => synth.cancel();
-  }, [index, muted, running, step.voiceText]);
+    if (elapsed >= PRESENTATION_DURATION_MS) setRunning(false);
+    if (!started) return;
+    const incoming = completedDemoRecords(elapsed);
+    if (incoming.length) setRecords((current) => appendRecords(current, incoming));
+  }, [elapsed, started]);
+
+  useEffect(() => {
+    if (!running || muted || mode !== "demo" || frame.privateStep) return;
+    let active = true;
+    const created: HTMLAudioElement[] = [];
+    const timers = frame.lines
+      .filter((line) => line.audioSrc && frame.relative < line.endsAt)
+      .map((line) =>
+        window.setTimeout(
+          () => {
+            if (!runningRef.current) return;
+            const audio = new Audio(line.audioSrc);
+            audio.currentTime = Math.max(0, frame.relative - line.startsAt) / 1000;
+            created.push(audio);
+            sampleAudioRef.current.add(audio);
+            audio.onended = () => sampleAudioRef.current.delete(audio);
+            audio.onerror = () => {
+              sampleAudioRef.current.delete(audio);
+              if (active) setAudioWarning(true);
+            };
+            void audio.play().catch(() => {
+              if (active) setAudioWarning(true);
+            });
+          },
+          Math.max(0, line.startsAt - frame.relative),
+        ),
+      );
+    return () => {
+      active = false;
+      timers.forEach((timer) => window.clearTimeout(timer));
+      created.forEach((audio) => {
+        audio.pause();
+        sampleAudioRef.current.delete(audio);
+      });
+    };
+    // Resume the sample from the matching position in the scenario.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frame.index, running, muted, mode, session]);
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => {
+    const element = recordListRef.current;
+    if (element) element.scrollTop = element.scrollHeight;
+  }, [records.length]);
 
   function start() {
-    window.speechSynthesis?.cancel();
-    spokenStepRef.current = -1;
+    pause();
+    setPanelOverride(null);
+    setAudioWarning(false);
+    setMode("demo");
     setElapsed(0);
     setStarted(true);
     setRunning(true);
+    setSession((value) => value + 1);
+    setRecords((current) => current.filter((item) => item.source !== "demo"));
   }
 
   function toggleRun() {
-    if (!started || elapsed >= PRESENTATION_DURATION_MS) {
-      start();
-      return;
-    }
-    if (running) window.speechSynthesis?.cancel();
-    if (!running) spokenStepRef.current = -1;
-    setRunning((value) => !value);
+    setPanelOverride(null);
+    if (!started || elapsed >= PRESENTATION_DURATION_MS) start();
+    else if (running) pause();
+    else setRunning(true);
   }
 
-  function restart() {
-    start();
+  const onBusy = useCallback(
+    (busy: boolean) => {
+      if (busy) pause();
+      setChatBusy(busy);
+    },
+    [pause],
+  );
+  const onStarted = useCallback(
+    (text: string) => setPanelOverride({ speaker: "나", text, final: false, source: "keyboard" }),
+    [],
+  );
+  const onCompleted = useCallback((text: string) => {
+    setPanelOverride({ speaker: "나", text, final: true, source: "keyboard" });
+    setRecords((current) =>
+      appendRecords(current, [
+        {
+          id: `keyboard-${Date.now()}`,
+          time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+          speaker: "나",
+          text,
+          source: "keyboard",
+        },
+      ]),
+    );
+  }, []);
+  const onPartial = useCallback((text: string) => {
+    if (text)
+      setPanelOverride({
+        speaker: selectedSeatRef.current ? `화자 ${selectedSeatRef.current}` : "화자 미확정",
+        text,
+        final: false,
+        source: "microphone",
+      });
+  }, []);
+  const onFinal = useCallback((caption: LiveCaption) => {
+    const speaker = selectedSeatRef.current ? `화자 ${selectedSeatRef.current}` : "화자 미확정";
+    setPanelOverride({ speaker, text: caption.text, final: true, source: "microphone" });
+    setRecords((current) =>
+      appendRecords(current, [
+        {
+          id: caption.id,
+          time: new Date(caption.createdAt).toLocaleTimeString("en-GB", { hour12: false }),
+          speaker,
+          text: caption.text,
+          source: "microphone",
+        },
+      ]),
+    );
+  }, []);
+
+  function saveRecords() {
+    const url = URL.createObjectURL(
+      new Blob([recordText(records)], { type: "text/plain;charset=utf-8" }),
+    );
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "VoiceEye_회의기록.txt";
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+
+  const demoLines = frame.lines.filter((line) => line.visible);
+  const activeSeats = panelOverride
+    ? mode === "live" && listening && panelOverride.source === "microphone" && selectedSeat
+      ? [selectedSeat]
+      : []
+    : started && running && mode === "demo"
+      ? frame.lines.filter((line) => line.talking).map((line) => line.seatId)
+      : [];
+  const panelTalking = panelOverride
+    ? chatBusy || (listening && !panelOverride.final)
+    : running && frame.lines.some((line) => line.talking);
 
   return (
-    <main className="scenario-page">
-      <header className="scenario-header">
-        <div>
-          <p className="scenario-brand">VOICEEYE</p>
-          <h1>회의가 보이면, 의견을 놓치지 않습니다</h1>
+    <main className="meeting-page">
+      <header className="meeting-header">
+        <div className="meeting-brand">
+          <strong>VoiceEye</strong>
+          <span>상담 일정 조정 회의</span>
         </div>
-        <div className="scenario-header-actions">
-          <span className="scenario-disclosure">{presentationDisclosure}</span>
-          <Link to="/lab" className="scenario-text-link">
-            기능 점검 화면
-          </Link>
+        <div className="meeting-mode-tabs" aria-label="자막 입력 방식">
+          <button
+            aria-pressed={mode === "demo"}
+            disabled={chatBusy}
+            onClick={() => {
+              pause();
+              setMode("demo");
+              setPanelOverride(null);
+            }}
+          >
+            회의 시연
+          </button>
+          <button
+            aria-pressed={mode === "live"}
+            disabled={chatBusy}
+            onClick={() => {
+              pause();
+              setMode("live");
+              setPanelOverride(null);
+            }}
+          >
+            마이크 자막
+          </button>
         </div>
       </header>
-
-      <section className="scenario-shell" aria-label="보이스아이 회의 시연">
-        <div className="scenario-main">
-          <div className="scenario-meta">
-            <div>
-              <span>회의 안건</span>
-              <strong>신규 상담 일정과 안내 방식</strong>
+      <div className="meeting-workspace">
+        <section className="meeting-panel-column" aria-label="회의실과 자막 패널">
+          <div className="meeting-stage">
+            <img
+              className="meeting-room-photo"
+              src={roomImage}
+              alt="회의실 탁자에 앉아 대화하는 다섯 명의 참석자 예시"
+            />
+            <div className="meeting-stage-top">
+              <span className="meeting-scene-badge">회의실 예시 이미지</span>
+              <span className="meeting-source-badge">
+                {mode === "demo" ? "합성 음성·대본 자막 시연" : "실제 마이크 · 좌석 수동 지정"}
+              </span>
             </div>
-            <div>
-              <span>현재 단계</span>
-              <strong>{started ? `${index + 1} / ${presentationScenario.length}` : "준비"}</strong>
+            {meetingSeats.map((seat) => (
+              <button
+                key={seat.id}
+                type="button"
+                className={`meeting-person ${activeSeats.includes(seat.id) ? "is-speaking" : ""} ${mode === "live" && selectedSeat === seat.id ? "is-selected" : ""}`}
+                style={{
+                  left: `${seat.x}%`,
+                  top: `${seat.y}%`,
+                  width: `${seat.w}%`,
+                  height: `${seat.h}%`,
+                }}
+                disabled={mode === "demo"}
+                aria-label={`${seat.name} 좌석 선택`}
+                aria-pressed={selectedSeat === seat.id}
+                onClick={() => setSelectedSeat(seat.id)}
+              >
+                <span>
+                  {seat.name}
+                  {activeSeats.includes(seat.id) && (
+                    <b>{mode === "live" ? "선택 좌석" : "말하는 중"}</b>
+                  )}
+                </span>
+              </button>
+            ))}
+            <div className="meeting-glass-panel" aria-live="polite" aria-atomic="true">
+              <div className="meeting-panel-status">
+                <span>
+                  <i className={panelTalking ? "is-on" : ""} />
+                  {panelOverride
+                    ? panelOverride.source === "keyboard"
+                      ? chatBusy
+                        ? "입력 문장을 음성으로 전달 중"
+                        : "내 발언"
+                      : panelOverride.final
+                        ? "자막 확정"
+                        : "음성 → 글자 변환 중"
+                    : !started || mode === "live"
+                      ? mode === "live"
+                        ? "마이크를 켜고 말씀하세요"
+                        : "회의 시연 준비"
+                      : frame.privateStep
+                        ? "참석자가 의견을 입력하고 있습니다"
+                        : panelTalking
+                          ? "대본 음성 → 자막 표시 중"
+                          : frame.step.warning
+                            ? "확인할 구간"
+                            : "자막 확정"}
+                </span>
+                <div className={`meeting-wave ${panelTalking ? "is-active" : ""}`} aria-hidden>
+                  {Array.from({ length: 12 }, (_, index) => (
+                    <i key={index} style={{ animationDelay: `${index * 75}ms` }} />
+                  ))}
+                </div>
+              </div>
+              {panelOverride ? (
+                <div className="meeting-caption-line">
+                  <strong>{panelOverride.speaker}</strong>
+                  <p>
+                    {panelOverride.text}
+                    <em>{!panelOverride.final && "▌"}</em>
+                  </p>
+                </div>
+              ) : mode === "live" ? (
+                <p className="meeting-panel-empty">마이크로 들어온 말이 이곳에 표시됩니다.</p>
+              ) : !started ? (
+                <div className="meeting-panel-empty">
+                  <strong>누가 말하는지, 어떤 말인지 함께 봅니다.</strong>
+                  <p>회의를 시작하면 발언 위치와 자막이 나타납니다.</p>
+                </div>
+              ) : frame.privateStep ? (
+                <p className="meeting-panel-empty">작성 중인 문장은 상대방에게 보이지 않습니다.</p>
+              ) : demoLines.length ? (
+                demoLines.map((line) => (
+                  <div className="meeting-caption-line" key={line.id}>
+                    <strong>{line.speaker}</strong>
+                    <p>
+                      {line.text}
+                      <em>{!line.final && "▌"}</em>
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="meeting-panel-empty">말소리를 듣고 있습니다…</p>
+              )}
             </div>
           </div>
-
-          <div className="scenario-room">
-            <Seat name="박민준" role="상담 담당" side="left" active={step.lines.some((line) => line.seat === "left")} />
-            <Seat name="김서연" role="진행" side="center" active={step.lines.some((line) => line.seat === "center")} />
-            <Seat name="정유진" role="운영 지원" side="right" active={step.lines.some((line) => line.seat === "right")} />
-
-            <div className="scenario-caption" aria-live="polite">
-              {!started ? (
-                <div className="scenario-start-copy">
-                  <span>80초 회의 시연</span>
-                  <h2>버튼을 누르면 회의가 자동으로 진행됩니다</h2>
-                  <p>발언, 동시 발언 확인, 비공개 작성, 음성 전달까지 한 흐름으로 보여 줍니다.</p>
-                </div>
-              ) : (
+          <div className="meeting-playback-bar">
+            <div>
+              <span className="meeting-playback-label">
+                {mode === "demo"
+                  ? started
+                    ? frame.step.label
+                    : "80초 회의 시나리오"
+                  : listening
+                    ? "마이크 연결 중"
+                    : "마이크 자막"}
+              </span>
+              <span className="meeting-time">
+                {meetingTime(elapsed)} / 01:20{audioWarning && " · 음성 재생을 확인해 주세요"}
+              </span>
+            </div>
+            <div className="meeting-playback-buttons">
+              {mode === "demo" && (
                 <>
-                  <div className="scenario-caption-head">
-                    <span>{step.label}</span>
-                    {step.warning ? <em>확인 필요</em> : <em className="is-ok">진행 중</em>}
-                  </div>
-                  <h2>{step.title}</h2>
-                  <div className="scenario-lines">
-                    {step.lines.map((line) => (
-                      <CaptionLine key={`${line.speaker}-${line.text}`} line={line} />
-                    ))}
-                  </div>
-                  <p className="scenario-note">{step.note}</p>
+                  <button className="meeting-play-button" disabled={chatBusy} onClick={toggleRun}>
+                    {running ? <Pause aria-hidden /> : <Play aria-hidden />}
+                    {!started || elapsed >= PRESENTATION_DURATION_MS
+                      ? "회의 시연 시작"
+                      : running
+                        ? "잠시 멈춤"
+                        : "계속 진행"}
+                  </button>
+                  <button
+                    className="meeting-icon-button"
+                    disabled={chatBusy}
+                    onClick={start}
+                    aria-label="처음부터 다시 시연"
+                  >
+                    <RotateCcw aria-hidden />
+                  </button>
+                  <button
+                    className="meeting-icon-button"
+                    disabled={chatBusy}
+                    onClick={() => {
+                      sampleAudioRef.current.forEach((audio) => audio.pause());
+                      setMuted((value) => !value);
+                    }}
+                    aria-label={muted ? "시연 음성 켜기" : "시연 음성 끄기"}
+                  >
+                    {muted ? <VolumeX aria-hidden /> : <Volume2 aria-hidden />}
+                  </button>
                 </>
               )}
             </div>
-
-            <div className={`scenario-self ${step.lines.some((line) => line.seat === "self") ? "is-active" : ""}`}>
-              <span>나</span>
-              <small>키보드 발언</small>
+          </div>
+          <section className="meeting-records" aria-labelledby="meeting-records-title">
+            <div className="meeting-section-title">
+              <h2 id="meeting-records-title">
+                회의 기록 <span>{records.length}</span>
+              </h2>
+              <button disabled={!records.length} onClick={saveRecords}>
+                <Download aria-hidden /> 텍스트 저장
+              </button>
             </div>
-          </div>
-
-          <div className={`scenario-compose ${step.draft ? "is-visible" : ""}`}>
-            <div>
-              <span>{index === 5 ? "비공개 미리보기" : "내 발언 작성"}</span>
-              <p>{step.draft ?? "작성 중인 문장은 나만 볼 수 있습니다."}</p>
+            <div ref={recordListRef} className="meeting-record-list" aria-live="polite">
+              {!records.length ? (
+                <p className="meeting-record-empty">
+                  확정된 자막과 음성으로 전달한 문장이 이곳에 쌓입니다.
+                </p>
+              ) : (
+                records.map((record) => (
+                  <article key={record.id} className="meeting-record">
+                    <time>{record.time}</time>
+                    <div>
+                      <header>
+                        <strong>{record.speaker}</strong>
+                        <span>
+                          {record.source === "demo"
+                            ? "대본 시연"
+                            : record.source === "keyboard"
+                              ? "키보드 발언"
+                              : "마이크 자막"}
+                        </span>
+                      </header>
+                      <p>{record.text}</p>
+                    </div>
+                  </article>
+                ))
+              )}
             </div>
-            <strong>{index >= 6 ? "스피커 전달" : index === 5 ? "확인 완료" : "비공개"}</strong>
-          </div>
-        </div>
-
-        <aside className="scenario-side">
-          <div className="scenario-time">
-            <span>진행 시간</span>
-            <strong>{formatTime(elapsed)}</strong>
-          </div>
-          <ol className="scenario-steps">
-            {presentationScenario.map((item, itemIndex) => (
-              <li key={item.startMs} className={itemIndex === index && started ? "is-current" : itemIndex < index && started ? "is-done" : ""}>
-                <span>{String(itemIndex + 1).padStart(2, "0")}</span>
-                <p>{item.label}</p>
-              </li>
-            ))}
-          </ol>
-          <div className="scenario-controls">
-            <button type="button" className="scenario-primary" onClick={toggleRun}>
-              {running ? <Pause aria-hidden /> : <Play aria-hidden />}
-              {!started || elapsed >= PRESENTATION_DURATION_MS ? "회의 시연 시작" : running ? "잠시 멈춤" : "계속 진행"}
-            </button>
-            <button type="button" onClick={restart} aria-label="처음부터 다시 시작">
-              <RotateCcw aria-hidden />
-            </button>
-            <button type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "음성 켜기" : "음성 끄기"}>
-              {muted ? <VolumeX aria-hidden /> : <Volume2 aria-hidden />}
-            </button>
-          </div>
+          </section>
+        </section>
+        <aside className="meeting-sidebar">
+          <MeetingChat onBusy={onBusy} onStarted={onStarted} onCompleted={onCompleted} />
+          <section className="meeting-input-info">
+            <h2>
+              <Mic aria-hidden /> 마이크로 직접 말하기
+            </h2>
+            {mode === "demo" ? (
+              <>
+                <p>직접 음성을 자막으로 바꾸려면 마이크 자막으로 전환하세요.</p>
+                <button
+                  onClick={() => {
+                    pause();
+                    setMode("live");
+                    setPanelOverride(null);
+                  }}
+                  disabled={chatBusy}
+                >
+                  마이크 자막으로 전환
+                </button>
+              </>
+            ) : (
+              <>
+                <p>발언자의 좌석을 직접 선택합니다. 자동 화자 판정은 연결하지 않았습니다.</p>
+                <div className="meeting-seat-picker">
+                  <button aria-pressed={!selectedSeat} onClick={() => setSelectedSeat(null)}>
+                    미확정
+                  </button>
+                  {meetingSeats.map((seat) => (
+                    <button
+                      key={seat.id}
+                      aria-pressed={selectedSeat === seat.id}
+                      onClick={() => setSelectedSeat(seat.id)}
+                    >
+                      {seat.id}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <LiveTranscriber
+              compact
+              disabled={mode !== "live" || chatBusy}
+              onPartial={onPartial}
+              onFinal={onFinal}
+              onListeningChange={setListening}
+            />
+          </section>
+          <p className="meeting-scope-note">
+            시연 화면의 발언 위치는 대본에 지정된 좌석입니다. 실제 마이크 인식률과 자동 화자 판정
+            성능을 보여 주는 시연은 아닙니다.
+          </p>
+          {!portable && (
+            <a className="meeting-lab-link" href={`${import.meta.env.BASE_URL}lab`}>
+              전체 기능 점검 화면
+            </a>
+          )}
         </aside>
-      </section>
-
-      <div className="scenario-progress" aria-hidden>
-        <span style={{ width: `${progress}%` }} />
       </div>
     </main>
   );
-}
-
-function CaptionLine({ line }: { line: ScenarioLine }) {
-  return (
-    <div className={`scenario-line seat-${line.seat}`}>
-      <span>{line.speaker}</span>
-      <p>{line.text}</p>
-    </div>
-  );
-}
-
-function Seat({ name, role, side, active }: { name: string; role: string; side: string; active: boolean }) {
-  return (
-    <div className={`scenario-seat seat-${side} ${active ? "is-active" : ""}`}>
-      <span>{name.slice(0, 1)}</span>
-      <div>
-        <strong>{name}</strong>
-        <small>{role}</small>
-      </div>
-    </div>
-  );
-}
-
-function formatTime(elapsedMs: number) {
-  const seconds = Math.min(80, Math.floor(elapsedMs / 1000));
-  return `0:${String(seconds).padStart(2, "0")}`;
 }
