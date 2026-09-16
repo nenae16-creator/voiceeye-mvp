@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'nenae16-creator/voiceeye-mvp'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
