@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
 const links = [
-  { to: "/", label: "패널 데모" },
+  { to: "/", label: "발표 시연" },
+  { to: "/lab", label: "기능 점검" },
   { to: "/strategy", label: "제품·AI" },
   { to: "/plan", label: "사업계획" },
-  { to: "/bench", label: "인식률" },
 ] as const;
 
 export function AppNav() {

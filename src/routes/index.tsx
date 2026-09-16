@@ -1,14 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppNav } from "@/components/AppNav";
-import { MeetingHud } from "@/components/hud/MeetingHud";
+import { MeetingScenario } from "@/components/demo/MeetingScenario";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  return (
-    <main className="min-h-dvh bg-bg text-fg">
-      <AppNav />
-      <MeetingHud />
-    </main>
-  );
+  return <MeetingScenario />;
 }

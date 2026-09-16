@@ -8,7 +8,7 @@
 > 실제 마이크 인식률·지연·한국어 TTS 자연스러움은 아직 실측 완료되지 않았습니다.
 > `node --test scripts/speech-composer.test.mjs`는 음성 API를 대체한 콜백 테스트이며 실장치 시험이 아닙니다.
 
-청각장애인 회의접근성 — 노트북 연동 투명 회의 패널 데모.
+청각장애인을 위한 회의 접근성 MVP입니다. 첫 화면에서는 발표용 회의 시나리오가 80초 동안 자동으로 진행됩니다.
 
 - 투명 패널에 확정 자막과 발언자 좌석·방향 표시
 - 실시간 한국어 마이크 자막과 임시·확정 문장 기록
@@ -22,13 +22,14 @@
 
 | 페이지        | 주소                                                |
 | ------------- | --------------------------------------------------- |
-| 패널 데모     | https://nenae16-creator.github.io/voiceeye/         |
+| 발표 시연     | https://nenae16-creator.github.io/voiceeye/         |
+| 기능 점검     | https://nenae16-creator.github.io/voiceeye/lab      |
 | 제품·AI 전략  | https://nenae16-creator.github.io/voiceeye/strategy |
 | 사업계획 v2.1 | https://nenae16-creator.github.io/voiceeye/plan     |
 | 인식률 벤치   | https://nenae16-creator.github.io/voiceeye/bench    |
 
-데모에서 해볼 것: 실시간 자막 시작 → 마이크 권한 허용 → 말하기 → 비공개 미리보기 → 스피커로 전송.
-`대본 시연`으로 전환하면 겹침·좌석 우선·오인식 표시 흐름도 확인할 수 있습니다.
+첫 화면에서 `회의 시연 시작`을 누르면 자막, 동시 발언 확인, 비공개 작성, 음성 발언, 결정 확인이 순서대로 나옵니다.
+이 화면은 발표용 대본으로 움직이며 실제 마이크 성능을 측정하지 않습니다. 실시간 STT와 입력·TTS 기능은 `/lab`에서 점검합니다.
 
 기본 TTS는 API 키 없이 기기에 설치된 `ko-KR` 음성을 사용합니다. 현재 Windows 실증 PC에서는
 `Microsoft Heami - Korean` 음성 재생을 확인했습니다. 한국어 음성이 없는 기기에서는 설치 안내를 표시합니다.
@@ -50,6 +51,11 @@ Node.js 22.18 이상을 사용합니다. Windows에서도 위 명령으로 실�
 클라우드 TTS 비교가 필요할 때만 `VITE_VOICEEYE_TTS_PROVIDER=cloud`를 켜고 서버의
 `VOICEEYE_TTS_PROVIDER=clova|xai` 및 해당 키를 설정합니다. 기본 상태에서는 클라우드를 호출하지 않습니다.
 `/bench`는 저장된 실측 JSON을 보여 줍니다.
+
+## 발표장 컴퓨터에서 실행
+
+`portable/voiceeye-demo` 폴더를 USB에 복사하고 `index.html`을 Chrome 또는 Edge로 엽니다.
+설치, 인터넷 연결, API 키가 필요하지 않습니다. 한국어 TTS가 없는 컴퓨터에서는 음성만 나오지 않고 화면 시연은 그대로 진행됩니다.
 
 ## P0 문서와 검증
 

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BenchRouteImport } from './routes/bench'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as StrategyRouteImport } from './routes/strategy'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const BenchRoute = BenchRouteImport.update({
   id: '/bench',
   path: '/bench',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanRoute = PlanRouteImport.update({
@@ -38,12 +44,14 @@ const StrategyRoute = StrategyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bench': typeof BenchRoute
+  '/lab': typeof LabRoute
   '/plan': typeof PlanRoute
   '/strategy': typeof StrategyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bench': typeof BenchRoute
+  '/lab': typeof LabRoute
   '/plan': typeof PlanRoute
   '/strategy': typeof StrategyRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bench': typeof BenchRoute
+  '/lab': typeof LabRoute
   '/plan': typeof PlanRoute
   '/strategy': typeof StrategyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bench' | '/plan' | '/strategy'
+  fullPaths: '/' | '/bench' | '/lab' | '/plan' | '/strategy'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bench' | '/plan' | '/strategy'
-  id: '__root__' | '/' | '/bench' | '/plan' | '/strategy'
+  to: '/' | '/bench' | '/lab' | '/plan' | '/strategy'
+  id: '__root__' | '/' | '/bench' | '/lab' | '/plan' | '/strategy'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BenchRoute: typeof BenchRoute
+  LabRoute: typeof LabRoute
   PlanRoute: typeof PlanRoute
   StrategyRoute: typeof StrategyRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/bench'
       fullPath: '/bench'
       preLoaderRoute: typeof BenchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plan': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BenchRoute: BenchRoute,
+  LabRoute: LabRoute,
   PlanRoute: PlanRoute,
   StrategyRoute: StrategyRoute,
 }
