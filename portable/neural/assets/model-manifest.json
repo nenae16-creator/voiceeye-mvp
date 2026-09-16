@@ -1,0 +1,177 @@
+[
+  {
+    "path": "tts/LICENSE",
+    "bytes": 15007,
+    "sha256": "0d944a9110fed9a9602d60e0423a272903e7bd21ab060490774efc77c2275e9f",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/README.md",
+    "bytes": 5771,
+    "sha256": "87036ef650156e7f90ca83083fd763e589176dfda1506bb093aacc710e706278",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/duration_predictor.onnx",
+    "bytes": 1521526,
+    "sha256": "6d556b3691165c364be91dc0bd894656b5949f5acd2750d8ec2f954010845011",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/text_encoder.onnx",
+    "bytes": 27431318,
+    "sha256": "dd5f535ed629f7df86071043e15f541ce1b2ab7f1bdbce4c7892b307bca79fa3",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/vector_estimator.onnx",
+    "bytes": 132471364,
+    "sha256": "105e9d66fd8756876b210a6b4aa03fc393b1eaca3a8dadcc8d9a3bc785c86a35",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/vocoder.onnx",
+    "bytes": 101405066,
+    "sha256": "19bd51f47a186069c752403518a40f7ea4c647455056d2511f7249691ecddf7c",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/tts.json",
+    "bytes": 8699,
+    "sha256": "ee531d9af9b80438a2ed703e22155ee6c83b12595ab22fd3bb6de94c7502fe96",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/onnx/unicode_indexer.json",
+    "bytes": 262196,
+    "sha256": "b7662a73a0703f43b97c0f2e089f8e8325e26f5d841aca393b5a54c509c92df1",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/voice_styles/F1.json",
+    "bytes": 420050,
+    "sha256": "6106950ebeb8a5da29ea22075f605db659cd07dbc288a68292543d9129aa250f",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/voice_styles/F2.json",
+    "bytes": 420293,
+    "sha256": "8b97feb16d79ac0447136796708feac5f83dbabe92a5be1168212653c38729ae",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/voice_styles/M1.json",
+    "bytes": 420510,
+    "sha256": "a04c823cbda6dd1c7de131ec68fea83bbb70d7f29d61623304eb871e3b83b5a1",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "tts/voice_styles/M2.json",
+    "bytes": 420285,
+    "sha256": "7ddd07bf873a3fd67d09ef4e8293b486beb658158b47e371166198e4c6926072",
+    "repo": "Supertone/supertonic-2",
+    "revision": "75e6727618a02f323c720cba9478152d4bc16ca4"
+  },
+  {
+    "path": "stt/whisper-base/README.md",
+    "bytes": 531,
+    "sha256": "60a378018182c57cf382866ddfbf0fb2b4031b3895ae932aa34ecb8ff7065a13",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/config.json",
+    "bytes": 2243,
+    "sha256": "f4d0608f7d918166da7edb3e188de5ef1bfe70d9802e785d271fd88111e9cf4b",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/generation_config.json",
+    "bytes": 3832,
+    "sha256": "61070cf8de25b1e9256e8e102ded49d8d24a8369ed36ef84fdf21549e68125a0",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/preprocessor_config.json",
+    "bytes": 339,
+    "sha256": "a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/tokenizer.json",
+    "bytes": 2480466,
+    "sha256": "27fc476bfe7f17299480be2273fc0608e4d5a99aba2ab5dec5374b4482d1a566",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/tokenizer_config.json",
+    "bytes": 282682,
+    "sha256": "2e036e4dbacfdeb7242c7d4ec4149f4a16e86026048f94d1637e3a8ee9c6a573",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/special_tokens_map.json",
+    "bytes": 2194,
+    "sha256": "e67ae3a0aaa99abcd9f187138e12db1f65c16a14761c50ef10eef2c174a7a691",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/added_tokens.json",
+    "bytes": 34604,
+    "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/normalizer.json",
+    "bytes": 52666,
+    "sha256": "bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/merges.txt",
+    "bytes": 493869,
+    "sha256": "2df2990a395e35e8dfbc7511e08c12d56018d8d04691e0133e5d63b21e154dc6",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/vocab.json",
+    "bytes": 1036584,
+    "sha256": "50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/onnx/encoder_model_quantized.onnx",
+    "bytes": 23201314,
+    "sha256": "5862993336bf33acd23736071aae2b32261d3b1b2f37780194460d4ef974dd46",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  },
+  {
+    "path": "stt/whisper-base/onnx/decoder_model_merged_quantized.onnx",
+    "bytes": 53693315,
+    "sha256": "fa3ef9902734ce5ae6f9ef2bdb2ba9a6c4b5785b09f4f420ce036573dc9d090b",
+    "repo": "onnx-community/whisper-base",
+    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925"
+  }
+]

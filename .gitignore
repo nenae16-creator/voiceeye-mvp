@@ -13,3 +13,8 @@ portable/.build/
 screenshots
 .grok/
 artifacts/imagine_images
+portable/neural/assets/tts/
+portable/neural/assets/stt/
+portable/neural/assets/runtime/
+portable/neural/assets/whisper-runtime/
+portable/voiceeye-neural-demo/

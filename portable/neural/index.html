@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="voiceeye-version" content="voiceeye-neural-20260916">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VoiceEye · 청각장애인 실시간 자막 MVP</title>
+  <style>
+    :root{
+      --teal:#0d7772; --teal-deep:#075d59; --teal-soft:#dff3ef;
+      --ink:#182227; --muted:#627077; --line:#d3dbd7;
+      --panel:#ffffff; --bg:#f2f4ef; --warn:#905600; --warn-bg:#fff0d5;
+      --ok:#0a7a4b; --shadow:0 18px 50px rgba(26,42,45,.14);
+      font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+      color:var(--ink); background:var(--bg);
+    }
+    *{box-sizing:border-box}
+    body{margin:0}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .page{min-height:100vh;padding:20px 22px 28px}
+    .head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;max-width:1480px;margin:0 auto 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+    .brand{margin:0 0 4px;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.2em}
+    .head h1{margin:0;font-size:clamp(22px,2.4vw,34px);letter-spacing:-.04em}
+    .head p.sub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+    .tag{flex-shrink:0;border:1px solid #b9c3be;border-radius:999px;background:#fff;padding:8px 12px;color:#4b5a60;font-size:12px;font-weight:700}
+
+    .shell{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0;max-width:1480px;margin:0 auto;border:1px solid #c7cfca;border-radius:18px;background:var(--panel);box-shadow:var(--shadow);overflow:hidden;min-height:min(86vh,960px)}
+    .main{display:grid;grid-template-rows:auto auto 1fr auto;min-width:0;padding:18px 20px 16px}
+    .meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid #e4e9e6}
+    .meta span{color:var(--muted);font-size:11px;font-weight:700}
+    .meta strong{margin-left:8px;font-size:14px}
+
+    .stage{position:relative;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid #cfd7d2;background:#1a2427;min-height:320px;aspect-ratio:16/9;max-height:420px}
+    .stage img.room{display:block;width:100%;height:100%;object-fit:cover}
+    .stage .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,20,22,.08),rgba(10,20,22,.55) 72%,rgba(10,20,22,.78));pointer-events:none}
+    .hotspot{position:absolute;z-index:3;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .2s ease}
+    .hotspot .ring{position:relative;width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.75);box-shadow:0 6px 18px rgba(0,0,0,.28);overflow:hidden;background:#222;transition:box-shadow .2s,border-color .2s,transform .2s}
+    .hotspot .ring img{width:100%;height:100%;object-fit:cover;display:block}
+    .hotspot .badge{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:#9aa5a8;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;border:2px solid #fff;opacity:0;transform:scale(.6);transition:.2s}
+    .hotspot .label{padding:2px 8px;border-radius:999px;background:rgba(12,22,24,.72);color:#fff;font-size:10px;font-weight:700;white-space:nowrap;backdrop-filter:blur(4px)}
+    .hotspot.on .ring{border-color:#2ee6b0;box-shadow:0 0 0 5px rgba(46,230,176,.28),0 8px 20px rgba(0,0,0,.3);transform:scale(1.08)}
+    .hotspot.on .badge{opacity:1;transform:scale(1);background:var(--ok)}
+    .hotspot.on .label{background:rgba(10,122,75,.92)}
+    .hs-park{left:34.5%;top:36%}
+    .hs-kim{left:54%;top:31%}
+    .hs-jung{left:67%;top:40%}
+    .hs-lee{left:74.5%;top:42%}
+    .hs-self{left:50%;top:88%}
+
+    .live-cap{position:absolute;z-index:5;left:50%;bottom:14px;transform:translateX(-50%);width:min(92%,720px);border-radius:12px;border:1px solid rgba(255,255,255,.22);border-top:4px solid var(--teal);background:rgba(255,255,255,.94);backdrop-filter:blur(8px);padding:12px 14px 10px;box-shadow:0 12px 30px rgba(0,0,0,.28);min-height:88px}
+    .caphead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .caphead span{color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.06em}
+    .status{border-radius:999px;background:var(--teal-soft);padding:3px 8px;color:var(--teal-deep);font-size:10px;font-weight:800}
+    .status.warn{background:var(--warn-bg);color:var(--warn)}
+    .status.idle{background:#eef1ef;color:#6a777c}
+    .status.user{background:#e8f7ee;color:var(--ok)}
+    .cap-body{margin-top:8px}
+    .cap-speaker{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:700}
+    .cap-speaker img{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid #c9d2cd}
+    .cap-text{margin:6px 0 0;font-size:clamp(16px,1.6vw,21px);font-weight:700;line-height:1.45;letter-spacing:-.02em;min-height:1.45em}
+    .cap-text .cursor{display:inline-block;width:2px;height:.95em;margin-left:2px;background:var(--teal);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+    .cap-empty{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+
+    .turn-bar{margin-top:12px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;border:1px solid #b7d9d2;background:linear-gradient(180deg,#f3fbf9,#e8f6f2)}
+    .turn-bar.show{display:flex}
+    .turn-bar .msg{font-size:13px;font-weight:800;color:var(--teal-deep);line-height:1.4}
+    .turn-bar .msg small{display:block;margin-top:2px;font-size:11px;font-weight:600;color:var(--muted)}
+    .turn-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .turn-actions button{min-height:42px;padding:0 16px;border-radius:10px;border:1px solid #9fc4bd;font-weight:800;font-size:13px}
+    .turn-actions .next{background:var(--teal);color:#fff;border-color:var(--teal)}
+    .turn-actions .mine{background:#fff;color:var(--teal-deep)}
+    .turn-bar.frozen{border-color:#f0c98a;background:linear-gradient(180deg,#fff8ea,#fff0d5)}
+    .turn-bar.frozen .msg{color:var(--warn)}
+    .turn-bar.acked{border-color:#9ed0b8;background:linear-gradient(180deg,#eefaf3,#e0f5ea)}
+    .turn-bar.acked .msg{color:var(--ok)}
+
+    .people{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .person{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border:1px solid var(--line);border-radius:999px;background:#f8faf8;transition:.2s}
+    .person img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 0 0 1px #c9d2cd}
+    .person b{display:block;font-size:12px}
+    .person small{display:block;color:var(--muted);font-size:10px}
+    .person.on{border-color:#7cc9bc;background:var(--teal-soft)}
+    .person.on img{box-shadow:0 0 0 3px rgba(13,119,114,.35)}
+
+    .log-wrap{margin-top:14px;display:grid;grid-template-rows:auto 1fr;min-height:0;border:1px solid var(--line);border-radius:12px;background:#fbfcfb;overflow:hidden}
+    .log-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #e4e9e6;background:#f4f7f5}
+    .log-head span{font-size:12px;font-weight:800;color:var(--teal-deep)}
+    .log-head button{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:4px 6px}
+    .log{max-height:180px;overflow:auto;padding:8px 10px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+    .log:empty::before{content:"아직 기록된 발언이 없습니다. 「회의 시작」 후 차례로 진행하거나, 아래에서 직접 말해 보세요.";display:block;padding:18px 8px;color:#8a969b;font-size:12px;text-align:center;line-height:1.5}
+    .entry{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:start;padding:8px;border-radius:10px;background:#fff;border:1px solid #e8eeea}
+    .entry img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+    .entry .who{font-size:11px;font-weight:800;color:var(--muted)}
+    .entry .txt{margin:2px 0 0;font-size:13px;font-weight:600;line-height:1.45}
+    .entry time{color:#8a969b;font-size:10px;font-weight:700;white-space:nowrap}
+
+    .compose{margin-top:12px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
+    .compose label{display:block;grid-column:1/-1;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:-2px}
+    .compose textarea{width:100%;min-height:54px;max-height:120px;resize:vertical;border:1px solid #c9d4cf;border-radius:10px;padding:10px 12px;background:#fff;line-height:1.45}
+    .compose textarea:focus{outline:2px solid rgba(13,119,114,.25);border-color:var(--teal)}
+    .compose.my-turn textarea{border-color:var(--ok);box-shadow:0 0 0 3px rgba(10,122,75,.15)}
+    .compose .send,.compose .mic{min-height:54px;min-width:54px;border:1px solid #9fc4bd;border-radius:10px;background:var(--teal);color:#fff;font-weight:800;font-size:13px;padding:0 14px}
+    .compose .mic{background:#fff;color:var(--teal-deep);border-color:#b7c6c1}
+    .compose .mic.on{background:#ffe8e8;border-color:#e08a8a;color:#a02828}
+    .compose .mic:disabled{opacity:.45;cursor:not-allowed}
+    .hint{margin:6px 0 0;color:#819096;font-size:11px;line-height:1.4}
+
+    .side{display:grid;grid-template-rows:auto auto auto 1fr auto;border-left:1px solid #d6ddd8;background:#162327;color:#eef5f2;padding:18px 16px}
+    .side .topic{padding-bottom:12px;border-bottom:1px solid #334246}
+    .side .topic span{display:block;color:#9babae;font-size:11px;font-weight:700;margin-bottom:6px}
+    .side .topic strong{display:block;font-size:15px;line-height:1.45;letter-spacing:-.02em}
+    .side .mode{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;padding-bottom:12px;border-bottom:1px solid #334246}
+    .side .mode span{color:#9babae;font-size:11px;font-weight:700}
+    .side .mode strong{font-size:18px}
+    .side .blurb{margin:12px 0;padding:10px;border-radius:10px;background:#1f3337;color:#c5d5d4;font-size:12px;line-height:1.55}
+    .agenda-title{margin:0 0 8px;color:#9babae;font-size:11px;font-weight:700}
+    .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;overflow:auto}
+    .steps li{display:grid;grid-template-columns:28px 1fr;gap:6px;align-items:center;min-height:38px;padding:6px 8px;border-radius:8px;color:#7f9195;font-size:12px;font-weight:700;line-height:1.35}
+    .steps li.now{background:#24383b;color:#fff}
+    .steps li.done{color:#a9b9b9}
+    .steps li span{font-size:10px;opacity:.8}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .controls button{min-height:48px;border:1px solid #425155;border-radius:10px;background:#223237;color:#fff;font-size:13px;font-weight:800;padding:0 10px}
+    .controls .primary{border-color:#8ee1d7;background:#a9eee6;color:#0d2728;grid-column:1/-1}
+    .controls .ghost{font-size:12px}
+    .controls button:disabled{opacity:.4;cursor:not-allowed}
+
+    @media(max-width:980px){
+      .shell{grid-template-columns:1fr}
+      .side{border-left:0;border-top:1px solid #d6ddd8}
+      .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .stage{max-height:none}
+      .log{max-height:160px}
+    }
+  .hs-park{left:36%;top:37%}.hs-kim{top:36%}.hs-jung{left:66%;top:37%}.hs-lee{top:39%}.hs-self{left:8%;top:70%}.hotspot .ring{overflow:visible}.hotspot .ring img{border-radius:50%}.side h3{font-size:14px}.supplies,#opinions{padding-left:18px;font-size:13px;line-height:1.8}#engineStatus{font-size:11px;line-height:1.6;color:#e0f3ed}.main{display:block}.shell{min-height:0}.turn-actions button:disabled,.compose button:disabled{opacity:.4;cursor:not-allowed}@media(max-width:520px){.page{padding:10px}.main{padding:12px}.stage{min-height:260px}.hotspot .ring{width:36px;height:36px}.hotspot .label{font-size:9px}.people{gap:5px}.person{padding:4px}.person img{width:24px;height:24px}.compose{grid-template-columns:1fr auto}.tag{display:none}.live-cap{bottom:10px}.cap-text{font-size:16px}}.side{display:block}.steps li{display:block;white-space:normal;min-height:30px}.steps li.on{background:#243e3f;color:#fff}.stage img.room{height:auto;min-height:100%;object-fit:cover}.meta strong{line-height:1.5}#voiceSample{display:inline-block;margin-top:8px;color:#c9eee2;font-size:11px}#voiceSample[hidden]{display:none}.page{padding:12px 18px}.head{margin-bottom:10px;padding-bottom:8px}.head h1{font-size:26px}.head p.sub{margin-top:4px;font-size:12px}.main{padding:12px 16px}.stage{height:clamp(220px,32vh,300px);min-height:220px;aspect-ratio:auto;margin-top:10px}.stage img.room{height:100%;min-height:0;object-fit:cover}.people{display:none}.log-wrap{margin-top:10px}.log{height:90px;max-height:90px}.compose{margin-top:10px}.hint{font-size:10px;line-height:1.5;margin:6px 0 0}.turn-bar{margin-top:10px;padding:8px 10px}.room-note{position:absolute;top:8px;left:10px;z-index:2;color:white;font-size:10px;background:#172628b3;border-radius:8px;padding:4px 7px}.hs-self{top:59%}.side .mode strong{font-size:14px;text-align:right}@media(max-width:980px){.side{padding:14px}.stage{height:260px}.steps{display:grid;grid-template-columns:repeat(2,1fr)}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}.hs-park,.hs-kim,.hs-jung{top:25%}.hs-lee{top:31%}.hs-self{left:5%;top:43%}@media(max-width:980px){.hs-park,.hs-kim,.hs-jung{top:35%}.hs-lee{top:39%}.hs-self{top:47%}}</style>
+</head>
+<body>
+<main class="page">
+  <header class="head">
+    <div>
+      <p class="brand">VOICEEYE</p>
+      <h1>회의를 읽고, 내 의견을 말하세요</h1>
+      <p class="sub">행사 준비 회의 시연 · 음성 자막 · 손들기 · 키보드 발언</p>
+    </div>
+    <span class="tag">행사 준비 회의 · 기기 내 음성 처리</span>
+  </header>
+
+  <section class="shell">
+    <div class="main">
+      <div class="meta">
+        <div><span>회의 안건</span><strong>금요일 고용 상담 행사 준비물</strong></div>
+        <div><span>현재 단계</span><strong id="stageLabel">대기</strong></div>
+      </div>
+
+      <div class="stage" id="stageRoom" aria-label="회의실 화면">
+        <img class="room" src="assets/meeting-room.png" alt="한국 사무실 회의실 — 네 명의 참석자가 테이블에 앉아 있습니다">
+        <div class="veil" aria-hidden="true"></div><span class="room-note">회의실 개념 이미지 · 시나리오 좌석</span>
+
+        <div class="hotspot hs-park" data-seat="park">
+          <div class="ring"><img src="assets/avatar-park.png" alt=""><span class="badge" aria-hidden="true">✓</span></div>
+          <span class="label">박민준</span>
+        </div>
+        <div class="hotspot hs-kim" data-seat="kim">
+          <div class="ring"><img src="assets/avatar-kim.png" alt=""><span class="badge" aria-hidden="true">✓</span></div>
+          <span class="label">김서연</span>
+        </div>
+        <div class="hotspot hs-jung" data-seat="jung">
+          <div class="ring"><img src="assets/avatar-jung.png" alt=""><span class="badge" aria-hidden="true">✓</span></div>
+          <span class="label">이준호</span>
+        </div>
+        <div class="hotspot hs-lee" data-seat="lee">
+          <div class="ring"><img src="assets/avatar-lee.png" alt=""><span class="badge" aria-hidden="true">✓</span></div>
+          <span class="label">정유진</span>
+        </div>
+        <div class="hotspot hs-self" data-seat="self">
+          <div class="ring"><img src="assets/avatar-self.svg" alt=""><span class="badge" aria-hidden="true">✓</span></div>
+          <span class="label">나 · 키보드</span>
+        </div>
+
+        <div class="live-cap" id="captionPanel">
+          <div class="caphead">
+            <span>음성 인식 자막</span>
+            <em class="status idle" id="capStatus">대기</em>
+          </div>
+          <div class="cap-body" id="capBody">
+            <p class="cap-empty">「회의 시작」을 누르면 안건에 맞춰 한 명씩 발언합니다.<br>다른 사람이 말할 때 「손들기」를 누르면 회의가 멈춥니다. 의견을 입력하고 음성으로 전달하세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="turn-bar" id="turnBar" aria-live="polite">
+        <div class="msg" id="turnMsg">다음 발언을 기다립니다.<small>한 번에 한 명만 말합니다.</small></div>
+        <div class="turn-actions">
+          <button type="button" class="next" id="nextBtn">다음 발언</button>
+          <button type="button" class="mine" id="myTurnBtn">손들기 · 발언하겠습니다</button><button type="button" id="finishFloor">발언 마치기</button>
+        </div>
+      </div>
+
+      <div class="people" id="people" aria-label="참석자 목록"></div>
+
+      <div class="log-wrap">
+        <div class="log-head">
+          <span>발언 기록 (세션 유지)</span>
+          <button type="button" id="clearLog">기록 지우기</button>
+        </div>
+        <div class="log" id="transcript" aria-live="polite"></div>
+      </div>
+
+      <form class="compose" id="chatForm" autocomplete="off">
+        <label for="chatInput">손들기로 차례를 요청한 뒤, 전달할 문장을 입력하세요.</label>
+        <textarea id="chatInput" rows="2" placeholder="예: 물하고 종이컵도 필요합니다. 제가 챙기겠습니다." maxlength="400"></textarea>
+        <button type="button" class="mic" id="micBtn" title="마이크 음성 인식" disabled>마이크</button>
+        <button type="submit" class="send" id="sendBtn">보내기 · 음성</button>
+      </form>
+      <p class="hint" id="micHint">마이크: 이 브라우저는 Web Speech Recognition을 지원하지 않거나, 로컬 파일에서는 제한될 수 있습니다. 채팅 TTS는 오프라인에서도 동작합니다(한국어 음성 팩 필요).</p>
+    </div>
+
+    <aside class="side">
+      <div class="topic">
+        <span>오늘 회의 주제</span>
+        <strong>금요일 고용 상담 행사 준비물</strong>
+      </div>
+      <div class="mode"><span>회의 상태</span><strong id="modeLabel">대기</strong></div>
+      <p class="blurb">회의 시작 → 다음 발언 → 손들기 → 의견 입력 → 발언 마치기. 자동으로 다음 사람에게 넘어가지 않습니다.</p>
+      <p class="agenda-title">안건 순서</p>
+      <ol class="steps" id="steps"></ol>
+      <div class="controls">
+        <button class="primary" id="startBtn" type="button">회의 시작</button>
+        <button class="ghost" id="restartBtn" type="button">처음부터</button>
+        <button class="ghost" id="muteBtn" type="button">음성 켜짐</button>
+      </div>
+    <p id="engineStatus" role="status">한국어 음성 준비 중</p><a id="voiceSample" hidden download="VoiceEye_새한국어음성.wav">현재 발언 음성 저장</a><h3>준비물 점검</h3><ul class="supplies"><li>명단 · 이름표 20개 / 접수</li><li>노트북 · 충전기 · 자막 패널 / 장비</li><li>연결 케이블 · 멀티탭 / 장비</li><li>안내문 20장 · 큰 글씨 안내판 · 펜 / 안내</li></ul><h3>추가 의견</h3><ul id="opinions"></ul></aside>
+  </section>
+</main>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
