@@ -11,10 +11,14 @@ function harness(overrides = {}) {
     record(_, text) { events.push(['record', text]); }, ...overrides });
   return { controller, events };
 }
-test('audio is completed before recognition and public captions use recognition output', async () => {
+test('captions appear as speech starts and final record uses recognition output', async () => {
   const { controller, events } = harness(); await controller.start();
-  assert.deepEqual(events.map(event => event[0]), ['synthesize', 'audio', 'recognize', 'caption', 'record']);
-  assert.equal(events.at(-1)[1], '실제로 들은 결과');
+  const names = events.map(event => event[0]);
+  assert.equal(names[0], 'synthesize');
+  assert.ok(names.indexOf('caption') >= 0 && names.indexOf('caption') < names.indexOf('audio'));
+  assert.ok(names.includes('recognize'));
+  assert.equal(names.at(-1), 'record');
+  assert.equal(events.at(-1)[1], "실제로 들은 결과");
 });
 test('next waits for explicit action; drafting and floor request block other participants', async () => {
   const { controller, events } = harness(); await controller.start();
