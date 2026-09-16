@@ -31,16 +31,24 @@ export function createMeetingController(io) {
       io.status('발언 음성 준비 중');
       const audio = await io.synthesize(beat.text, beat.seat);
       if (id !== token) return false;
-      io.caption(beat.seat, '', '음성을 듣는 중');
+      // Show captions immediately while speech plays; run Whisper in parallel.
+      io.caption(beat.seat, beat.text, '자막 표시');
+      io.status('음성을 듣는 중');
+      const recognition = source === '음성 인식'
+        ? io.recognize(audio).then((result) => {
+            if (id === token && String(result || '').trim()) io.caption(beat.seat, result, '음성 인식');
+            return result;
+          })
+        : Promise.resolve(beat.text);
       await io.play(audio, () => io.speaker(beat.seat));
       if (id !== token) return false;
       io.speaker(null);
       let text = beat.text;
       if (source === '음성 인식') {
         io.status('들은 음성을 인식 중');
-        text = await io.recognize(audio);
+        text = await recognition;
         if (id !== token) return false;
-        if (!text.trim()) throw new Error('자막을 인식하지 못했습니다. 발언을 다시 들을 수 있습니다.');
+        if (!String(text || '').trim()) throw new Error('자막을 인식하지 못했습니다. 발언을 다시 들을 수 있습니다.');
       }
       io.caption(beat.seat, text, source);
       io.record(beat.seat, text, source);
