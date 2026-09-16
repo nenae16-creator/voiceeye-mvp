@@ -72,6 +72,6 @@ npm run check:plan
 
 ## 행사 준비 회의 발표판 (2026-09-16)
 
-발표판은 `portable/neural`에 있다. Windows 기본 음성 대신 USB에 포함한 Supertonic 2 한국어 TTS를 사용한다. 참석자 발언 음성 재생이 끝난 뒤 Whisper base가 인식한 결과를 자막에 표시한다. 손들기와 키보드 발언은 회의 진행을 멈춘다. 이전 React MVP의 마이크 구현은 보존했다.
+발표판은 `portable/neural`에 있다. Windows 기본 음성 대신 USB에 포함한 Supertonic 2 한국어 TTS를 사용한다. 참석자 발언 음성 재생이 끝난 뒤 Whisper small가 인식한 결과를 자막에 표시한다. 손들기와 키보드 발언은 회의 진행을 멈춘다. 이전 React MVP의 마이크 구현은 보존했다.
 
 `npm run setup:demo:neural` → `npm run build:demo:neural` → `npm run demo:neural`. 검사: `npm run test:demo:neural`. 모델의 이용조건과 구현 한계는 `portable/neural/README.md`를 확인한다. 개발용 서버와 USB 실행 파일은 로컬 파일 제공 용도이며 모델 추론은 브라우저 안에서 수행한다.

@@ -10,7 +10,7 @@ env.allowLocalModels = true;
 env.localModelPath = base + 'stt/';
 env.useBrowserCache = false;
 env.backends.onnx.wasm.wasmPaths = base + 'whisper-runtime/';
-env.backends.onnx.wasm.numThreads = 1;
+env.backends.onnx.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, self.navigator.hardwareConcurrency || 1) : 1;
 let tts, recognizer;
 const styles = {};
 function progress(text) { self.postMessage({ progress: text }); }
@@ -22,9 +22,9 @@ async function initialize() {
   }
   if (!recognizer) {
     progress('한국어 자막 인식 준비 중');
-    recognizer = await pipeline('automatic-speech-recognition', 'whisper-base', { dtype: 'q8', device: 'wasm' });
+    recognizer = await pipeline('automatic-speech-recognition', 'whisper-small', { dtype: 'q8', device: 'wasm' });
   }
-  return { engine: 'Supertonic 2 · 한국어 신경망 음성', stt: 'Whisper base · 기기 내 음성 인식' };
+  return { engine: 'Supertonic 2 · 한국어 신경망 음성', stt: 'Whisper small · 기기 내 음성 인식' };
 }
 let queue = Promise.resolve();
 self.onmessage = ({ data }) => {
@@ -40,8 +40,9 @@ self.onmessage = ({ data }) => {
       } else if (data.action === 'recognize') {
         if (!recognizer) await initialize();
         progress('들은 음성을 자막으로 바꾸는 중');
+        const started = performance.now();
         const output = await recognizer(data.pcm, { language: 'korean', task: 'transcribe', chunk_length_s: 20 });
-        result = { text: output.text.trim() };
+        result = { text: output.text.trim(), seconds: (performance.now() - started) / 1000 };
       } else throw new Error('지원하지 않는 음성 작업');
       self.postMessage({ id: data.id, result });
     } catch (error) { self.postMessage({ id: data.id, error: error.message }); }

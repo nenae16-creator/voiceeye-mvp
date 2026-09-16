@@ -1,5 +1,6 @@
 import { createMeetingController, AGENDA, BEATS } from './meeting-controller.js';
 import { writeWavFile } from './vendor/supertonic-helper.js';
+import { correctMeetingTerms } from './caption-terms.js';
 
 const $ = id => document.getElementById(id);
 const PEOPLE = {
@@ -11,6 +12,7 @@ const PEOPLE = {
 };
 const worker = new Worker(new URL('./speech-worker.js', import.meta.url), { type: 'module' });
 let seq = 0, ready = false, context, playing, settlePlayback, engineDescription = '';
+let lastRecognition = null;
 const pending = new Map();
 function rpc(action, args = {}) {
   return new Promise((resolve, reject) => { const id = ++seq; pending.set(id, { resolve, reject }); worker.postMessage({ id, action, ...args }); });
@@ -53,22 +55,37 @@ async function play(audio, onstart) {
   });
 }
 async function recognize(audio) {
+  lastRecognition = null;
   const resampler = new OfflineAudioContext(1, Math.ceil(audio.pcm.length * 16000 / audio.sampleRate), 16000);
   const buffer = resampler.createBuffer(1, audio.pcm.length, audio.sampleRate); buffer.copyToChannel(audio.pcm, 0);
   const source = resampler.createBufferSource(); source.buffer = buffer; source.connect(resampler.destination); source.start();
   const output = await resampler.startRendering();
-  return (await rpc('recognize', { pcm: output.getChannelData(0) })).text;
+  const recognized = await rpc('recognize', { pcm: output.getChannelData(0) });
+  $('micHint').textContent = `최근 자막 처리 ${recognized.seconds.toFixed(1)}초 · 재생한 합성 음성의 실제 인식 결과입니다. 발언자는 시나리오 좌석으로 표시합니다. 카메라로 판정하지 않습니다.`;
+  lastRecognition = correctMeetingTerms(recognized.text);
+  return lastRecognition.text;
 }
 function el(tag, text, className) { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; }
 function caption(seat, text, source) {
   const person = PEOPLE[seat], body = $('capBody'); body.replaceChildren();
   body.append(el('div', `${person.name} · ${person.role}`, 'cap-speaker'), el('p', text || '음성이 끝나면 인식한 자막이 표시됩니다.', 'cap-text'));
   $('capStatus').textContent = source; $('capStatus').className = 'status';
+  if (source === '음성 인식' && lastRecognition?.changes.length) {
+    $('capStatus').textContent = '음성 인식 · 용어 보정';
+    body.append(recognitionDetails(lastRecognition));
+  }
+}
+function recognitionDetails(result) {
+  const details = el('details');
+  details.style.cssText = 'font-size:11px;line-height:1.5;margin-top:5px';
+  details.append(el('summary', `용어 보정: ${result.changes.map(change => change.from + ' → ' + change.to).join(', ')} · 원문 보기`), el('p', result.raw));
+  return details;
 }
 function record(seat, text, source) {
   const person = PEOPLE[seat], row = el('div', undefined, 'entry'), photo = el('img');
   photo.src = `assets/avatar-${seat === 'self' ? 'self.svg' : seat + '.png'}`; photo.alt = '';
   const body = el('div'); body.append(el('div', `${person.name} · ${source}`, 'who'), el('p', text, 'txt'));
+  if (source === '음성 인식' && lastRecognition?.changes.length) body.append(recognitionDetails(lastRecognition));
   row.append(photo, body, el('time', new Date().toLocaleTimeString('ko-KR', { hour12: false })));
   $('transcript').append(row); $('transcript').scrollTop = $('transcript').scrollHeight;
 }

@@ -8,7 +8,7 @@ const root = resolve('portable/neural/assets');
 const revisions = JSON.parse(await readFile('portable/neural/model-revisions.json', 'utf8'));
 const models = [
   { repo: 'Supertone/supertonic-2', revision: revisions.tts, target: 'tts', paths: ['LICENSE','README.md','onnx/duration_predictor.onnx','onnx/text_encoder.onnx','onnx/vector_estimator.onnx','onnx/vocoder.onnx','onnx/tts.json','onnx/unicode_indexer.json','voice_styles/F1.json','voice_styles/F2.json','voice_styles/M1.json','voice_styles/M2.json'] },
-  { repo: 'onnx-community/whisper-base', revision: revisions.stt, target: 'stt/whisper-base', paths: ['README.md','config.json','generation_config.json','preprocessor_config.json','tokenizer.json','tokenizer_config.json','special_tokens_map.json','added_tokens.json','normalizer.json','merges.txt','vocab.json','onnx/encoder_model_quantized.onnx','onnx/decoder_model_merged_quantized.onnx'] },
+  { repo: 'onnx-community/whisper-small', revision: revisions.stt, target: 'stt/whisper-small', paths: ['README.md','config.json','generation_config.json','preprocessor_config.json','tokenizer.json','tokenizer_config.json','special_tokens_map.json','added_tokens.json','normalizer.json','merges.txt','vocab.json','onnx/encoder_model_quantized.onnx','onnx/decoder_model_merged_quantized.onnx'] },
 ];
 const manifest = [];
 for (const model of models) {

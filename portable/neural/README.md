@@ -11,7 +11,7 @@ Chrome 또는 Edge에서 모델 준비가 끝나면 회의 시작 버튼이 켜�
 ## 시연 순서
 
 1. 회의 시작을 누른다. 금요일 고용 상담 행사의 준비물을 확인하는 첫 참석자 발언이 나온다.
-2. 음성이 끝나면 Whisper base가 그 음성의 PCM을 인식한다. 인식 결과가 자막과 기록에 들어온다. 대본을 자막으로 대신 쓰지 않는다.
+2. 음성이 끝나면 Whisper small가 그 음성의 PCM을 인식한다. 인식 결과가 자막과 기록에 들어온다. 대본을 자막으로 대신 쓰지 않는다.
 3. 다음 발언을 눌러 접수 담당과 장비 담당의 이야기를 듣는다. 자동 진행은 없다.
 4. 손들기를 누른다. 다른 발언이 멈추고 “발언하겠습니다”라는 음성이 나온다. 중단된 참석자 발언은 완료 기록에 남지 않으며 다음에 다시 진행한다.
 5. “물하고 종이컵도 필요합니다. 제가 챙기겠습니다.”라고 입력하고 보내기·음성을 누른다. 입력한 문장을 음성으로 전달한다. 재생이 끝나면 정확한 입력 문장이 기록과 추가 의견에 남는다.
@@ -37,4 +37,10 @@ Chrome 또는 Edge에서 모델 준비가 끝나면 회의 시작 버튼이 켜�
 
 모델을 Git에 넣지 않는다. 다운로드 스크립트가 고정 revision에서 받아 파일별 SHA-256과 이용조건을 배포본에 보관한다. 모델 파일과 런타임은 USB 배포본에 모두 포함한다.
 
-출처: [Supertonic 공식 코드](https://github.com/supertone-oss-archive/supertonic), [Supertonic 2 모델·OpenRAIL-M 이용조건](https://huggingface.co/Supertone/supertonic-2), [Whisper base ONNX](https://huggingface.co/onnx-community/whisper-base), [Transformers.js](https://github.com/huggingface/transformers.js). Supertonic helper 코드의 MIT 고지를 vendor에 보관했다.
+출처: [Supertonic 공식 코드](https://github.com/supertone-oss-archive/supertonic), [Supertonic 2 모델·OpenRAIL-M 이용조건](https://huggingface.co/Supertone/supertonic-2), [Whisper small ONNX](https://huggingface.co/onnx-community/whisper-small), [Transformers.js](https://github.com/huggingface/transformers.js). Supertonic helper 코드의 MIT 고지를 vendor에 보관했다.
+
+## 2026-09-16 자막 개선
+
+Whisper base를 small q8로 교체했다. 동일 음성 첫 문장에서 5 후 2시 → 오후 2시 인식을 확인했다. 접수 문장의 이름표 20개를 확인했으나 멀티템 오인식은 남았다. 검토한 회의 용어 멀티템·멀티텝만 멀티탭으로 보정하며, 자막과 기록에 용어 보정 표시 및 원래 인식 문장을 제공한다. 숫자·부정 표현·문장 전체를 대본으로 바꾸지 않는다. TTS는 변경하지 않았다.
+
+브라우저의 첫 발언 인식 처리 실측 13.8초(음성 재생 종료 이후, 이번 PC 1회). 이는 실제 회의용 실시간 성능으로 충분하지 않다. 네이티브 CPU 비교 시간은 별도의 실행 환경이며 브라우저 처리 시간과 혼동하지 않는다. 실제 회의 서비스는 한국어 스트리밍 STT 후보와 동일 음성으로 정확도·지연·비용을 비교한 뒤 선택해야 한다.
