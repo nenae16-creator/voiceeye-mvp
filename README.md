@@ -2,6 +2,14 @@
 
 DAL&Co.의 회의 접근성 MVP입니다. 청각장애인이 소규모 대면회의에서 대화를 읽고, 작성한 문장을 음성으로 전달하며, 놓친 구간을 확인하는 흐름을 시험합니다.
 
+## 2026-09-18 발표대본 (최신)
+
+- [A트랙 인쇄용 PDF — 19쪽 자료·93만원 기준](submission/2026-09-06_AI%EC%8B%A4%ED%97%98%EC%8B%A4/%EB%B0%9C%ED%91%9C%EC%A4%80%EB%B9%84_15%EB%B6%84/%ED%88%AC%ED%8A%B8%EB%9E%99_%EB%B0%9C%ED%91%9C%EB%8C%80%EB%B3%B8/A%ED%8A%B8%EB%9E%99_%EA%B3%B5%EC%8B%9D%EC%96%91%EC%8B%9D19%EC%AA%BD_93%EB%A7%8C%EC%9B%90_14%EB%B6%84%EB%B0%9C%ED%91%9C%EB%8C%80%EB%B3%B8_20260917.pdf)
+- [B트랙 인쇄용 PDF — 18쪽 자료·60만원 기준](submission/2026-09-06_AI%EC%8B%A4%ED%97%98%EC%8B%A4/%EB%B0%9C%ED%91%9C%EC%A4%80%EB%B9%84_15%EB%B6%84/%ED%88%AC%ED%8A%B8%EB%9E%99_%EB%B0%9C%ED%91%9C%EB%8C%80%EB%B3%B8/B%ED%8A%B8%EB%9E%99_DALCo_PDF18%EC%AA%BD_60%EB%A7%8C%EC%9B%90_14%EB%B6%84%EB%B0%9C%ED%91%9C%EB%8C%80%EB%B3%B8_20260917.pdf)
+- [대본 선택 안내와 편집용 원고](submission/2026-09-06_AI%EC%8B%A4%ED%97%98%EC%8B%A4/%EB%B0%9C%ED%91%9C%EC%A4%80%EB%B9%84_15%EB%B6%84/%ED%88%AC%ED%8A%B8%EB%9E%99_%EB%B0%9C%ED%91%9C%EB%8C%80%EB%B3%B8/README.md)
+
+15분 발표 중 14분을 목표로 작성했습니다. 대본의 시연 구간은 약 40초입니다. 발표장에 열린 자료의 장수와 예산에 맞는 대본을 선택합니다.
+
 ## 발표장 시연
 
 `portable/voiceeye-demo/index.html`을 Chrome 또는 Edge로 엽니다. 인터넷 연결, Node.js 설치, API 키가 필요하지 않습니다.
